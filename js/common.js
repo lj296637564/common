@@ -1,14 +1,23 @@
-const com = new Object();
+/*
+ * @Author: lj
+ * @Date: 2019-04-19 14:46:39
+ * @LastEditTime: 2020-05-27 09:55:05
+ * @LastEditors: lj
+ * @Description: 
+ */
+const com = {};
 
 /**
  * 转换时间
  * @param {number} format:   要格式化的时间，默认为空
  * @param {string} type:     需要转换的日期格式（如：'yyyy-MM-dd'），默认为'yyyy-MM-dd'
  * @param {string} hyphen:   用于日期的连字符，默认为（'-'）
- * @return {string}          格式化后的时间字符串
+ * @return {string}          格式化后的时间字符串，默认返回当前时间
  */
 com.prototype.formatDate = function(format = '', type = 'yyyy-MM-dd', hyphen = '-') {
-        let date = format ? new Date(+format) : new Date();
+        // 处理日期兼容性
+        let time = format ? format.replace(/-/g, '/') : '';
+        let date = format ? new Date(format) : new Date();
         let y = date.getFullYear();
         let m = date.getMonth() + 1;
         let d = date.getDate();
@@ -36,18 +45,19 @@ com.prototype.formatDate = function(format = '', type = 'yyyy-MM-dd', hyphen = '
                 return judgeTime(hh) + ':' + judgeTime(mm);
                 break;
             default:
+                return h + hyphen + judgeTime(m) + hyphen + judgeTime(d);
                 break;
         }
     }
     /**
      * 获取星期几
      * @param {number} format:   要格式化的时间，默认空
-     * @return {string}          返回具体的星期
+     * @return {string}          返回具体的星期，默认返回当天
      */
 
 com.prototype.getWeekDay = function(format = '') {
         let weekday = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-        let date = format !== '' ? new Date(+format) : new Date();
+        let date = format !== '' ? new Date(format) : new Date();
         return weekday[date.getDay()];
     }
     /**
@@ -57,7 +67,7 @@ com.prototype.getWeekDay = function(format = '') {
      */
 com.prototype.verificationPhone = function(num = '') {
         if (num === '') return false;
-        let reg = /^1(3|4|5|7|8|9)\d{9}$/;
+        let reg = /^1(3|4|5|6|7|8|9)\d{9}$/;
         return reg.test(num);
     }
     /**
