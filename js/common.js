@@ -1,7 +1,7 @@
 /*
  * @Author: lj
  * @Date: 2019-04-19 14:46:39
- * @LastEditTime: 2020-05-27 09:55:05
+ * @LastEditTime: 2020-05-27 11:43:58
  * @LastEditors: lj
  * @Description: 
  */
@@ -15,37 +15,38 @@ const com = {};
  * @return {string}          格式化后的时间字符串，默认返回当前时间
  */
 com.prototype.formatDate = function(format = '', type = 'yyyy-MM-dd', hyphen = '-') {
-        // 处理日期兼容性
+        // 处理日期兼容性，在IE浏览器上只能识别 / 
         let time = format ? format.replace(/-/g, '/') : '';
-        let date = format ? new Date(format) : new Date();
+        let date = time ? new Date(time) : new Date();
         let y = date.getFullYear();
-        let m = date.getMonth() + 1;
-        let d = date.getDate();
-        let hh = date.getHours();
-        let mm = date.getMinutes();
-        let ss = date.getSeconds();
+        let m = judgeTime(date.getMonth() + 1);
+        let d = judgeTime(date.getDate());
+        let hh = judgeTime(date.getHours());
+        let mm = judgeTime(date.getMinutes());
+        let ss;
+        ss = judgeTime(date.getSeconds());
         // 判断日期格式
         switch (type) {
             case 'yyyy-MM':
-                return h + hyphen + judgeTime(m);
+                return y + hyphen + m;
                 break;
             case 'yyyy-MM-dd':
-                return h + hyphen + judgeTime(m) + hyphen + judgeTime(d);
+                return y + hyphen + m + hyphen + d;
                 break;
             case 'yyyy-MM-dd hh:mm:ss':
-                return h + hyphen + judgeTime(m) + hyphen + judgeTime(d) + ' ' + judgeTime(hh) + ':' + judgeTime(mm) + ':' + judgeTime(ss);
+                return y + hyphen + m + hyphen + d + ' ' + hh + ':' + mm + ':' + ss;
                 break;
             case 'yyyy-MM-dd hh:mm':
-                return h + hyphen + judgeTime(m) + hyphen + judgeTime(d) + ' ' + judgeTime(hh) + ':' + judgeTime(mm);
+                return y + hyphen + m + hyphen + d + ' ' + hh + ':' + mm;
                 break;
             case 'hh:mm:ss':
-                return judgeTime(hh) + ':' + judgeTime(mm) + ':' + judgeTime(ss);
+                return hh + ':' + mm + ':' + ss;
                 break;
             case 'hh:mm':
-                return judgeTime(hh) + ':' + judgeTime(mm);
+                return hh + ':' + mm;
                 break;
             default:
-                return h + hyphen + judgeTime(m) + hyphen + judgeTime(d);
+                return y + hyphen + m + hyphen + d;
                 break;
         }
     }
@@ -56,8 +57,10 @@ com.prototype.formatDate = function(format = '', type = 'yyyy-MM-dd', hyphen = '
      */
 
 com.prototype.getWeekDay = function(format = '') {
+        // 处理日期兼容性，在IE浏览器上只能识别 / 
+        let time = format ? format.replace(/-/g, '/') : '';
         let weekday = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-        let date = format !== '' ? new Date(format) : new Date();
+        let date = time ? new Date(time) : new Date();
         return weekday[date.getDay()];
     }
     /**
@@ -88,5 +91,59 @@ com.prototype.verificationLandline = function(num = '') {
  */
 function judgeTime(n) {
     return n > 9 ? n + '' : '0' + n
+}
+
+/* 数字、中文、大小写英文、常规标点符号*/
+export const routineRE = /^[\u4e00-\u9fa5\uFF00-\uFFFFa-zA-Z0-9，。？！“”‘’：；（）、,./?:;'"!]+$/;
+
+export function validateRoutine(str) {
+    return routineRE.test(str)
+}
+
+
+/* 验证表情 */
+export const regEmoji = /[^\u0020-\u007E\u00A0-\u00BE\u2E80-\uA4CF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF\u0080-\u009F\u2000-\u201f\u2026\u2022\u20ac\r\n]/g;
+
+/**
+ * 限制输入框输入内容
+ * @param {String} 输入框值
+ * @param {Object} 搜索值所在对象
+ * @param {String} 搜索所在值的 key 值
+ * @param {String} 可输入的类型 type
+ * 
+ */
+export function regEmojiFn(val, obj, key, type = 'emoji') {
+    switch (type) {
+        case 'emoji': // 限制输入表情
+            if (regEmoji.test(val)) {
+                obj[key] = val.replace(regEmoji, '')
+            }
+            break;
+        case 'number': // 纯数字
+            let regNumber = /[^0-9]/ig;
+            if (!/^\d{1,}$/.test(val)) {
+                obj[key] = val.replace(regNumber, '')
+            }
+            break;
+        case 'name': // 数字、中文、大小写英文、常规标点符号
+            let regName = /[^\u4e00-\u9fa5\uFF00-\uFFFFa-zA-Z0-9，。？！“”‘’：；（）、,./?:;'"!]/ig;
+            if (!routineRE.test(val)) {
+                obj[key] = val.replace(regName, '')
+            }
+            break;
+        case 'price': // 价格
+            let regPrice = /[^\d.]/ig;
+            if (!/^[\d.]+$/g.test(val)) {
+                obj[key] = val.replace(regPrice, '')
+            }
+            break;
+        case 'chinese': // 中文
+            let regChinese = /[^\u4e00-\u9fa5]/ig;
+            if (!/^[\u4e00-\u9fa5]+$/.test(val)) {
+                obj[key] = val.replace(regChinese, '')
+            }
+            break;
+    }
+
 }
 export default com;
